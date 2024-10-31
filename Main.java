@@ -276,7 +276,7 @@ public class Main {
     private static void showMovieDetails(JSONObject movie, Scanner scanner, String previousMenu) {
         ConsoleUtils.clearConsole(); // clear the menu at the top to only shows relevant data for movie details function
         System.out.println(
-            "\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
+            "\nEnter 'r' to rate this movie\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
         );
         System.out.println("\nMovie Details");
         String title = movie.getString("title");
@@ -309,6 +309,15 @@ public class Main {
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("f")) {
             addToFavorites(movieId);
+            showMovieDetails(movie, scanner, previousMenu);
+        } else if (input.equalsIgnoreCase("r")) {
+            System.out.print("\nEnter your rating (0.5 to 10): ");
+            // reads the user's input from the console using the scanner object
+            // Double.parseDouble(...) converts this string input into a double type
+            double ratingValue = Double.parseDouble(scanner.nextLine());
+            // calls the rateMovie method, passing two arguments: movieId, which is the identifier of the movie being rated, and ratingValue, which is the user-provided rating
+            rateMovie(movieId, ratingValue);
+            // called again to refresh the display of movie details after the rating has been submitted
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("b")) {
             if (previousMenu.equals("discover")) {
@@ -416,6 +425,42 @@ public class Main {
                 }
             } else {
                 System.out.println("Failed to add movie to favorites. Response code: " + responseCode);
+            }
+
+            conn.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // this method handles the process of sending the rating to the tmdb api, where the movie's rating will be recorded
+    private static void rateMovie(int movieId, double ratingValue) {
+        try {
+            URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/rating?api_key=" + ACCESS_TOKEN);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String jsonInputString = "{\"value\":" + ratingValue + "}";
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                System.out.println("Rating submitted successfully.");
+
+                try {
+                    Thread.sleep(2000); // delay for 2 seconds
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                System.out.println("Failed to submit rating. Response code: " + responseCode);
             }
 
             conn.disconnect();
