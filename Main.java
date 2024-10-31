@@ -31,7 +31,8 @@ public class Main {
             System.out.println("2. Search Movies");
             System.out.println("3. View Watchlist");
             System.out.println("4. View Favorites");
-            System.out.println("5. Exit");
+            System.out.println("5. View Rated Movies");
+            System.out.println("6. Exit");
             System.out.print("\nChoice: ");
             String choice = scanner.nextLine();
 
@@ -49,6 +50,9 @@ public class Main {
                     viewFavorites(scanner);
                     break;
                 case "5":
+                    viewRatedMovies(scanner);
+                    break;
+                case "6":
                     running = false;
                     System.out.println("Exiting the program.");
                     break;
@@ -273,6 +277,61 @@ public class Main {
         }
     }
 
+    private static void viewRatedMovies(Scanner scanner) {
+        try {
+            URL url = new URL(
+                "https://api.themoviedb.org/3/account/" +
+                ACCOUNT_ID +
+                "/rated/movies?language=en-US&page=1&sort_by=created_at.asc&api_key=" +
+                API_KEY
+            );
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                StringBuilder content = new StringBuilder();
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    String inputLine;
+                    while ((inputLine = in.readLine()) != null) {
+                        content.append(inputLine);
+                    }
+                }
+
+                JSONObject jsonResponse = new JSONObject(content.toString());
+                JSONArray results = jsonResponse.getJSONArray("results");
+
+                // get movie count from rated movies
+                int movieCount = results.length();
+
+                ConsoleUtils.clearConsole();
+                System.out.println("\nYour Rated Movies (" + movieCount + " movies found)\n");
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject movie = results.getJSONObject(i);
+                    String title = movie.getString("title");
+                    double rating = movie.getDouble("rating"); // use "rating" instead of "vote_average" for rated movies
+                    System.out.println((i + 1) + ". " + title + " ( " + rating + ")");
+                }
+
+                System.out.println("\nSelect a movie number to view details\nEnter 0 to go back");
+                System.out.print("\nOption: ");
+                int selection = scanner.nextInt();
+                scanner.nextLine();
+                if (selection > 0 && selection <= results.length()) {
+                    int movieId = results.getJSONObject(selection - 1).getInt("id");
+                    fetchAndShowMovieDetails(movieId, scanner, "rated");
+                }
+            } else {
+                System.out.println("Failed to retrieve rated movies. Response code: " + responseCode);
+            }
+            conn.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void showMovieDetails(JSONObject movie, Scanner scanner, String previousMenu) {
         ConsoleUtils.clearConsole(); // clear the menu at the top to only shows relevant data for movie details function
         System.out.println(
@@ -328,6 +387,8 @@ public class Main {
                 viewWatchlist(scanner);
             } else if (previousMenu.equals("favorites")) {
                 viewFavorites(scanner);
+            } else if (previousMenu.equals("rated")) {
+                viewRatedMovies(scanner);
             }
         } else if (input.equalsIgnoreCase("e")) {
             System.out.println("Exiting the program.");
