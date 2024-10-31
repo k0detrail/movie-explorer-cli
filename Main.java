@@ -80,8 +80,12 @@ public class Main {
                 JSONObject jsonResponse = new JSONObject(response.toString());
                 JSONArray results = jsonResponse.getJSONArray("results");
 
+                // get movie count from the discover list
+                int movieCount = results.length();
+
                 ConsoleUtils.clearConsole();
-                System.out.println("\nDiscover Movies\n");
+                // display the count of movies in the output
+                System.out.println("\nDiscover Movies (" + movieCount + " movies found)\n");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
                     String title = movie.getString("title");
@@ -131,8 +135,11 @@ public class Main {
                 JSONObject jsonResponse = new JSONObject(response.toString());
                 JSONArray results = jsonResponse.getJSONArray("results");
 
+                // get movie count from the search results
+                int movieCount = results.length();
+
                 if (results.length() > 0) {
-                    System.out.println("\nSearch Results\n");
+                    System.out.println("\nSearch Results (" + movieCount + " movies found)\n");
                     for (int i = 0; i < results.length(); i++) {
                         JSONObject movie = results.getJSONObject(i);
                         String title = movie.getString("title");
@@ -181,8 +188,11 @@ public class Main {
                 JSONObject jsonResponse = new JSONObject(content.toString());
                 JSONArray results = jsonResponse.getJSONArray("results");
 
+                // get movie count from the watchlist
+                int movieCount = results.length();
+
                 ConsoleUtils.clearConsole(); // clear the menu at the top to only shows relevant data for watchlist function
-                System.out.println("\nYour Watchlist\n");
+                System.out.println("\nYour Watchlist (" + movieCount + " movies found)\n");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
                     String title = movie.getString("title");
@@ -234,8 +244,11 @@ public class Main {
                 JSONObject jsonResponse = new JSONObject(content.toString());
                 JSONArray results = jsonResponse.getJSONArray("results");
 
+                // get movie count from the favorites list
+                int movieCount = results.length();
+
                 ConsoleUtils.clearConsole();
-                System.out.println("\nYour Favorites List\n");
+                System.out.println("\nYour Favorites List (" + movieCount + " movies found)\n");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
                     String title = movie.getString("title");
