@@ -205,7 +205,9 @@ public class Main {
 
     private static void showMovieDetails(JSONObject movie, Scanner scanner, String previousMenu) {
         ConsoleUtils.clearConsole(); // clear the menu at the top to only shows relevant data for movie details function
-        System.out.println("\nEnter 'a' to add this movie to your watchlist\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit");
+        System.out.println(
+            "\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
+        );
         System.out.println("\nMovie Details");
         String title = movie.getString("title");
         String tagline = movie.optString("tagline", ""); // use optString to avoid errors if tagline is missing
@@ -234,6 +236,9 @@ public class Main {
 
         if (input.equalsIgnoreCase("a")) {
             addToWatchlist(movieId);
+            showMovieDetails(movie, scanner, previousMenu);
+        } else if (input.equalsIgnoreCase("f")) {
+            addToFavorites(movieId);
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("b")) {
             if (previousMenu.equals("discover")) {
@@ -305,6 +310,40 @@ public class Main {
                 }
             } else {
                 System.out.println("Failed to add movie to watchlist. Response code: " + responseCode);
+            }
+
+            conn.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void addToFavorites(int movieId) {
+        try {
+            URL url = new URL("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/favorite?api_key=" + ACCESS_TOKEN);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"favorite\": true}";
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                System.out.println("Movie successfully added to your favorites.");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                System.out.println("Failed to add movie to favorites. Response code: " + responseCode);
             }
 
             conn.disconnect();
