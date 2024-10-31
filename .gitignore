@@ -1,0 +1,17 @@
+# compiled java class
+*.class
+
+# environment variables
+.env
+
+# log
+wget-log
+
+# latex auxiliary files
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+
+# node.js dependencies
+/node_modules

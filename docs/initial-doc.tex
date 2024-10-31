@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage[legalpaper, margin=1in]{geometry}
+\usepackage{hyperref} % clickable hyperlinks
+\usepackage{enumitem} % formatting of lists
+\usepackage{XCharter} % font
+
+
+\title{Movie Explorer CLI Using TMDB API}
+\author{
+  Jauod, Glen \\
+  Obina, Florence Jade \\
+  Corpuz, McArl \\
+}
+\date{} % this supresses the date
+
+\begin{document}
+
+\maketitle
+
+\section*{1. Title}
+Movie Explorer CLI Using TMDB API
+
+\section*{2. Objectives of the Program}
+\begin{enumerate}[label=\arabic*.]
+    \item To create a CLI-based Java application that allows users to discover and search for movies using TMDB's API.
+    \item To provide an interactive experience where users can browse movie listings, view movie details, and manage a personal watchlist.
+    \item Gain experience working with third-party APIs by interacting with TMDB, learning the basics of HTTP requests, responses, and data processing within a Java context.
+\end{enumerate}
+
+\section*{3. Functionalities}
+\subsection*{3.1 Main Menu}
+\begin{itemize}
+    \item \textbf{Options:}
+    \begin{itemize}
+        \item \textbf{Discover Movies}: Fetches and displays a list of 20 popular movies from TMDB.
+        \item \textbf{Search Movies}: Prompts the user to input a search query and then displays 20 relevant movie results.
+        \item \textbf{Watchlist}: Displays movies the user has added to their watchlist.
+        \item \textbf{Exit}: Terminates the program.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{3.2 Discover Movies}
+\begin{itemize}
+    \item Displays a list of 20 movies with basic information (title, rating, and release date).
+    \item Allows users to select a movie for more details, such as overview, tagline, genres, and more.
+    \item Users can choose to add a movie to their watchlist.
+\end{itemize}
+
+\subsection*{3.3 Search Movies}
+\begin{itemize}
+    \item Prompts for a keyword or title.
+    \item Fetches and displays up to 20 movies based on the search query.
+    \item Similar to Discover Movies, users can view movie details and add to watchlist.
+\end{itemize}
+
+\subsection*{3.4 Watchlist}
+\begin{itemize}
+    \item Shows all movies added to the user’s watchlist.
+    \item Users can view details of movies from the watchlist.
+\end{itemize}
+
+\section*{4. Limitations}
+\begin{itemize}
+  \item \textbf{Page Limitations}: The program only displays one page of results (up to 20 movies) at a time for both Discover Movies and Search Movies due to simplicity.
+  \item \textbf{Error Handling}: Limited error handling, particularly if API requests fail (e.g., due to network issues or API downtime).
+  \item \textbf{Image Availability}: When exploring a movie, some titles are difficult to identify due to missing posters. This isn’t a TMDB API limitation, as posters are included in the API response; it’s due to terminal constraints, as the terminal cannot render images.
+  \item \textbf{Internet Dependency}: The program relies entirely on internet access to fetch data from the TMDB API. Without an internet connection, the program becomes unusable, as it cannot load movies or save a watchlist locally.
+  \item \textbf{Watchlist Management}: Users cannot remove a movie from their watchlist. Although the TMDB API supports this feature, the function currently has issues that prevent reliable removal.
+  \item \textbf{Limited Interactivity and Sorting Options}: Users have no options for advanced sorting or filtering, such as sorting by release date, genre, or ratings. This reduces the flexibility of exploring specific movie types or filtering results within the current page.
+  \item \textbf{Basic User Interface}: Being console-based, the program lacks an intuitive GUI, which may reduce ease of navigation for users. All interactions are text-based, limiting visual feedback and requiring users to type commands or menu selections manually.
+  \item \textbf{Inconsistent Movie Data}: If movies lack information like release dates, summaries, or ratings, the program cannot fill in these gaps, making it harder to evaluate those movies without external sources.
+\end{itemize}
+
+\end{document}
