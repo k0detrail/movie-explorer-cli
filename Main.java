@@ -89,12 +89,17 @@ public class Main {
 
                 ConsoleUtils.clearConsole();
                 // display the count of movies in the output
-                System.out.println("\nDiscover Movies (" + movieCount + " movies found)\n");
+                System.out.println("\nDiscover Movies (" + movieCount + " movies found)");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject movie = results.getJSONObject(i);
                     String title = movie.getString("title");
                     double rating = movie.getDouble("vote_average");
-                    System.out.println((i + 1) + ". " + title + " ( " + rating + ")");
+                    String releaseDate = movie.getString("release_date");
+                    String overview = movie.getString("overview");
+                    // truncate overview to a specified length (150 characters)
+                    String truncatedOverview = truncateOverview(overview, 150);
+                    System.out.println("\n" + (i + 1) + ". \u001B[32m" + title + "\u001B[0m ( " + rating + " |  " + releaseDate + ") ");
+                    System.out.println(truncatedOverview);
                 }
 
                 System.out.println("\nSelect a movie number to view details\nEnter 0 to go back");
@@ -143,12 +148,19 @@ public class Main {
                 int movieCount = results.length();
 
                 if (results.length() > 0) {
-                    System.out.println("\nSearch Results (" + movieCount + " movies found)\n");
+                    System.out.println("\nSearch Results (" + movieCount + " movies found)");
                     for (int i = 0; i < results.length(); i++) {
                         JSONObject movie = results.getJSONObject(i);
                         String title = movie.getString("title");
                         double rating = movie.getDouble("vote_average");
-                        System.out.println((i + 1) + ". " + title + " ( " + rating + ")");
+                        String releaseDate = movie.getString("release_date");
+                        String overview = movie.getString("overview");
+                        // truncate overview to a specified length (150 characters)
+                        String truncatedOverview = truncateOverview(overview, 150);
+                        System.out.println(
+                            "\n" + (i + 1) + ". \u001B[32m" + title + "\u001B[0m ( " + rating + " |  " + releaseDate + ") "
+                        );
+                        System.out.println(truncatedOverview);
                     }
 
                     System.out.println("\nSelect a movie number to view details\nEnter 0 to go back");
@@ -528,6 +540,14 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    // method to truncate the overview
+    private static String truncateOverview(String overview, int maxLength) {
+        if (overview.length() <= maxLength) {
+            return overview; // return full overview if it's within the limit
+        }
+        return overview.substring(0, maxLength) + "..."; // truncate and append ellipsis
     }
 
     // utility class to perform console-related actions
