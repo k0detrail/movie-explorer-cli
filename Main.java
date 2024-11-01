@@ -19,6 +19,23 @@ public class Main {
     private static final String DISCOVER_URL =
         "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc";
     private static final String SEARCH_URL = "https://api.themoviedb.org/3/search/movie?language=en-US&page=1&include_adult=false&query=";
+    private static final String WATCHLIST_URL =
+        "https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/watchlist/movies?api_key=" + API_KEY;
+    private static final String FAVORITES_URL =
+        ("https://api.themoviedb.org/3/account/" +
+            ACCOUNT_ID +
+            "/favorite/movies?api_key=" +
+            API_KEY +
+            "&language=en-US&page=1&sort_by=created_at.asc");
+    private static final String RATED_MOVIES_URL =
+        ("https://api.themoviedb.org/3/account/" +
+            ACCOUNT_ID +
+            "/rated/movies?language=en-US&page=1&sort_by=created_at.asc&api_key=" +
+            API_KEY);
+    private static final String ADD_WATCHLIST_URL =
+        ("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/watchlist?api_key=" + ACCESS_TOKEN);
+    private static final String ADD_FAVORITES_URL =
+        ("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/favorite?api_key=" + ACCESS_TOKEN);
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -185,7 +202,7 @@ public class Main {
 
     private static void viewWatchlist(Scanner scanner) {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/watchlist/movies?api_key=" + API_KEY);
+            URL url = new URL(WATCHLIST_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
@@ -235,13 +252,7 @@ public class Main {
 
     private static void viewFavorites(Scanner scanner) {
         try {
-            URL url = new URL(
-                "https://api.themoviedb.org/3/account/" +
-                ACCOUNT_ID +
-                "/favorite/movies?api_key=" +
-                API_KEY +
-                "&language=en-US&page=1&sort_by=created_at.asc"
-            );
+            URL url = new URL(FAVORITES_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
@@ -291,12 +302,7 @@ public class Main {
 
     private static void viewRatedMovies(Scanner scanner) {
         try {
-            URL url = new URL(
-                "https://api.themoviedb.org/3/account/" +
-                ACCOUNT_ID +
-                "/rated/movies?language=en-US&page=1&sort_by=created_at.asc&api_key=" +
-                API_KEY
-            );
+            URL url = new URL(RATED_MOVIES_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
@@ -438,7 +444,7 @@ public class Main {
 
     private static void addToWatchlist(int movieId) {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/watchlist?api_key=" + ACCESS_TOKEN);
+            URL url = new URL(ADD_WATCHLIST_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
@@ -474,7 +480,7 @@ public class Main {
 
     private static void addToFavorites(int movieId) {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/favorite?api_key=" + ACCESS_TOKEN);
+            URL url = new URL(ADD_FAVORITES_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
