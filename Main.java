@@ -43,13 +43,16 @@ public class Main {
 
         while (running) {
             ConsoleUtils.clearConsole(); // called at the beginning of each function to clear the screen and only show the relevant options or information
-            System.out.println("\nThe Movie Database CLI");
-            System.out.println("\n1. Discover Movies");
-            System.out.println("2. Search Movies");
-            System.out.println("3. View Watchlist");
-            System.out.println("4. View Favorites");
-            System.out.println("5. View Rated Movies");
-            System.out.println("6. Exit");
+            System.out.println("\n󰎁 The Movie Database CLI 󰟞");
+            System.out.println(
+                "\nA simple command-line tool to explore movies and manage your favorites. Pick an option below to discover new films, search for specific titles, or check your watchlist. When you’re done, just hit exit!"
+            );
+            System.out.println("\n 1. Discover Movies - Explore new movies");
+            System.out.println(" 2. Search Movies - Find specific movies by title or genre");
+            System.out.println(" 3. View Watchlist - Your watch later list");
+            System.out.println(" 4. View Favorites - Access your personal favorite movies");
+            System.out.println(" 5. View Rated Movies - Acess the movies you've rated");
+            System.out.println("󰈆 6. Exit - Close the application");
             System.out.print("\nChoice: ");
             String choice = scanner.nextLine();
 
