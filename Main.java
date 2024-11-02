@@ -305,13 +305,35 @@ public class Main {
                     System.out.println((i + 1) + ". " + title + " ( " + rating + ")");
                 }
 
-                System.out.println("\nSelect a movie number to view details\nEnter 0 to go back");
+                System.out.println(
+                    "\nSelect a movie number to view details\nEnter 'x' to remove a movie from favorites\nEnter 0 to go back"
+                );
                 System.out.print("\nOption: ");
-                int selection = scanner.nextInt();
-                scanner.nextLine();
-                if (selection > 0 && selection <= results.length()) {
-                    int movieId = results.getJSONObject(selection - 1).getInt("id");
-                    fetchAndShowMovieDetails(movieId, scanner, "favorites");
+                String input = scanner.nextLine();
+
+                if (input.equalsIgnoreCase("x")) {
+                    System.out.print("\nEnter the number of the movie to remove: ");
+                    int index = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (index > 0 && index <= results.length()) {
+                        int movieId = results.getJSONObject(index - 1).getInt("id");
+                        removeFromFavorites(movieId);
+
+                        // refresh the favorites view after removal
+                        viewFavorites(scanner);
+                    } else {
+                        System.out.println("Invalid number.");
+                        viewFavorites(scanner); // stay on the favorites page for invalid input
+                    }
+                } else {
+                    int selection = Integer.parseInt(input);
+                    if (selection == 0) {
+                        return; // go back to the previous menu
+                    } else if (selection > 0 && selection <= results.length()) {
+                        int movieId = results.getJSONObject(selection - 1).getInt("id");
+                        fetchAndShowMovieDetails(movieId, scanner, "favorites");
+                    }
                 }
             } else {
                 System.out.println("Failed to retrieve favorites list. Response code: " + responseCode);
@@ -555,6 +577,40 @@ public class Main {
                 }
             } else {
                 System.out.println("Failed to add movie to favorites. Response code: " + responseCode);
+            }
+
+            conn.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void removeFromFavorites(int movieId) {
+        try {
+            URL url = new URL(ADD_FAVORITES_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"favorite\": false}";
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                System.out.println("Movie successfully removed from your favorites.");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                System.out.println("Failed to remove movie from favorites. Response code: " + responseCode);
             }
 
             conn.disconnect();
