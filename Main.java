@@ -377,13 +377,58 @@ public class Main {
                     System.out.println((i + 1) + ". " + title + " ( " + rating + ")");
                 }
 
-                System.out.println("\nSelect a movie number to view details\nEnter 0 to go back");
+                System.out.println(
+                    "\nSelect a movie number to view details\nEnter 'x' to delete a rating\nEnter 'e' to edit a rating\nEnter 0 to go back"
+                );
                 System.out.print("\nOption: ");
-                int selection = scanner.nextInt();
-                scanner.nextLine();
-                if (selection > 0 && selection <= results.length()) {
-                    int movieId = results.getJSONObject(selection - 1).getInt("id");
-                    fetchAndShowMovieDetails(movieId, scanner, "rated");
+                String input = scanner.nextLine();
+
+                if (input.equalsIgnoreCase("x")) {
+                    System.out.print("\nEnter the number of the movie to delete the rating: ");
+                    int index = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (index > 0 && index <= results.length()) {
+                        int movieId = results.getJSONObject(index - 1).getInt("id");
+                        deleteRating(movieId);
+
+                        // refresh the rated movies view after deletion
+                        viewRatedMovies(scanner);
+                    } else {
+                        System.out.println("Invalid index number.");
+                        viewRatedMovies(scanner); // stay on the rated movies page for invalid input
+                    }
+                } else if (input.equalsIgnoreCase("e")) {
+                    System.out.print("\nEnter the number of the movie to edit the rating: ");
+                    int index = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (index > 0 && index <= results.length()) {
+                        int movieId = results.getJSONObject(index - 1).getInt("id");
+                        System.out.print("Enter the new rating (0.5 to 10): ");
+                        double newRating = scanner.nextDouble();
+                        scanner.nextLine();
+
+                        if (newRating >= 0.5 && newRating <= 10) {
+                            rateMovie(movieId, newRating);
+                        } else {
+                            System.out.println("Invalid rating. Rating should be between 0.5 and 10.");
+                        }
+
+                        // refresh the rated movies view after editing
+                        viewRatedMovies(scanner);
+                    } else {
+                        System.out.println("Invalid index number.");
+                        viewRatedMovies(scanner); // stay on the rated movies page for invalid input
+                    }
+                } else {
+                    int selection = Integer.parseInt(input);
+                    if (selection == 0) {
+                        return; // go back to the previous menu
+                    } else if (selection > 0 && selection <= results.length()) {
+                        int movieId = results.getJSONObject(selection - 1).getInt("id");
+                        fetchAndShowMovieDetails(movieId, scanner, "rated");
+                    }
                 }
             } else {
                 System.out.println("Failed to retrieve rated movies. Response code: " + responseCode);
@@ -619,7 +664,8 @@ public class Main {
         }
     }
 
-    // this method handles the process of sending the rating to the tmdb api, where the movie's rating will be recorded
+    // this method handles the process of managing a movie's rating on the tmdb api
+    // it sends a POST request to submit or update a rating
     private static void rateMovie(int movieId, double ratingValue) {
         try {
             URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/rating?api_key=" + ACCESS_TOKEN);
@@ -647,6 +693,32 @@ public class Main {
                 }
             } else {
                 System.out.println("Failed to submit rating. Response code: " + responseCode);
+            }
+
+            conn.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void deleteRating(int movieId) {
+        try {
+            URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/rating?api_key=" + ACCESS_TOKEN);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Rating successfully removed from this movie.");
+                try {
+                    Thread.sleep(2000); // delay for 2 seconds
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                System.out.println("Failed to remove rating. Response code: " + responseCode);
             }
 
             conn.disconnect();
