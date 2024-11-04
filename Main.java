@@ -249,7 +249,7 @@ public class Main {
 
                     if (index > 0 && index <= results.length()) {
                         int movieId = results.getJSONObject(index - 1).getInt("id");
-                        removeFromWatchlist(movieId);
+                        updateWatchlist(movieId, false);
 
                         // call viewWatchlist again to refresh after removal
                         viewWatchlist(scanner);
@@ -474,7 +474,7 @@ public class Main {
         String input = scanner.nextLine();
 
         if (input.equalsIgnoreCase("a")) {
-            addToWatchlist(movieId);
+            updateWatchlist(movieId, true);
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("f")) {
             addToFavorites(movieId);
@@ -534,7 +534,7 @@ public class Main {
         }
     }
 
-    private static void addToWatchlist(int movieId) {
+    private static void updateWatchlist(int movieId, boolean add) {
         try {
             URL url = new URL(ADD_WATCHLIST_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -552,7 +552,8 @@ public class Main {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                System.out.println("Movie successfully added to your watchlist.");
+                String action = add ? "added to" : "removed from";
+                System.out.println("Movie successfully " + action + " your watchlist.");
 
                 // add a brief pause to let the user see the success message before the screen clears
                 try {
@@ -561,36 +562,8 @@ public class Main {
                     Thread.currentThread().interrupt();
                 }
             } else {
-                System.out.println("Failed to add movie to watchlist. Response code: " + responseCode);
-            }
-
-            conn.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void removeFromWatchlist(int movieId) {
-        try {
-            URL url = new URL(ADD_WATCHLIST_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"watchlist\": false}";
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                System.out.println("Movie successfully removed from your watchlist.");
-            } else {
-                System.out.println("Failed to remove movie from watchlist. Response code: " + responseCode);
+                String action = add ? "add" : "remove";
+                System.out.println("Failed to " + action + " movie to watchlist. Response code: " + responseCode);
             }
 
             conn.disconnect();
