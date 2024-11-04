@@ -321,7 +321,7 @@ public class Main {
 
                     if (index > 0 && index <= results.length()) {
                         int movieId = results.getJSONObject(index - 1).getInt("id");
-                        removeFromFavorites(movieId);
+                        updateFavorites(movieId, false);
 
                         // refresh the favorites view after removal
                         viewFavorites(scanner);
@@ -393,7 +393,7 @@ public class Main {
 
                     if (index > 0 && index <= results.length()) {
                         int movieId = results.getJSONObject(index - 1).getInt("id");
-                        deleteRating(movieId);
+                        updateRating(movieId, null);
 
                         // refresh the rated movies view after deletion
                         viewRatedMovies(scanner);
@@ -413,7 +413,7 @@ public class Main {
                         scanner.nextLine();
 
                         if (newRating >= 0.5 && newRating <= 10) {
-                            rateMovie(movieId, newRating);
+                            updateRating(movieId, newRating);
                         } else {
                             System.out.println("Invalid rating. Rating should be between 0.5 and 10.");
                         }
@@ -477,7 +477,7 @@ public class Main {
             updateWatchlist(movieId, true);
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("f")) {
-            addToFavorites(movieId);
+            updateFavorites(movieId, true);
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("r")) {
             System.out.print("\nEnter your rating (0.5 to 10): ");
@@ -485,7 +485,7 @@ public class Main {
             // Double.parseDouble(...) converts this string input into a double type
             double ratingValue = Double.parseDouble(scanner.nextLine());
             // calls the rateMovie method, passing two arguments: movieId, which is the identifier of the movie being rated, and ratingValue, which is the user-provided rating
-            rateMovie(movieId, ratingValue);
+            updateRating(movieId, ratingValue);
             // called again to refresh the display of movie details after the rating has been submitted
             showMovieDetails(movie, scanner, previousMenu);
         } else if (input.equalsIgnoreCase("b")) {
@@ -572,7 +572,7 @@ public class Main {
         }
     }
 
-    private static void addToFavorites(int movieId) {
+    private static void updateFavorites(int movieId, boolean isAdding) {
         try {
             URL url = new URL(ADD_FAVORITES_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -581,7 +581,7 @@ public class Main {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
-            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"favorite\": true}";
+            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"favorite\": " + isAdding + "}";
 
             try (OutputStream os = conn.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes("utf-8");
@@ -590,85 +590,18 @@ public class Main {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                System.out.println("Movie successfully added to your favorites.");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            } else {
-                System.out.println("Failed to add movie to favorites. Response code: " + responseCode);
-            }
+                String action = isAdding ? "added to" : "removed from";
+                System.out.println("Movie successfully " + action + " your favorites.");
 
-            conn.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void removeFromFavorites(int movieId) {
-        try {
-            URL url = new URL(ADD_FAVORITES_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"favorite\": false}";
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                System.out.println("Movie successfully removed from your favorites.");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            } else {
-                System.out.println("Failed to remove movie from favorites. Response code: " + responseCode);
-            }
-
-            conn.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // this method handles the process of managing a movie's rating on the tmdb api
-    // it sends a POST request to submit or update a rating
-    private static void rateMovie(int movieId, double ratingValue) {
-        try {
-            URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/rating?api_key=" + ACCESS_TOKEN);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            String jsonInputString = "{\"value\":" + ratingValue + "}";
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-                System.out.println("Rating submitted successfully.");
-
+                // add a brief pause to let the user see the success message before the screen clears
                 try {
                     Thread.sleep(2000); // delay for 2 seconds
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             } else {
-                System.out.println("Failed to submit rating. Response code: " + responseCode);
+                String action = isAdding ? "add" : "remove";
+                System.out.println("Failed to " + action + " movie to favorites. Response code: " + responseCode);
             }
 
             conn.disconnect();
@@ -677,24 +610,42 @@ public class Main {
         }
     }
 
-    private static void deleteRating(int movieId) {
+    private static void updateRating(int movieId, Double ratingValue) {
         try {
             URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/rating?api_key=" + ACCESS_TOKEN);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("DELETE");
+
+            // set request properties before opening the connection
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
             conn.setRequestProperty("Content-Type", "application/json");
 
+            if (ratingValue != null) {
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+
+                String jsonInputString = "{\"value\":" + ratingValue + "}";
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+            } else {
+                conn.setRequestMethod("DELETE");
+            }
+
             int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("Rating successfully removed from this movie.");
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                String action = ratingValue != null ? "submitted" : "removed";
+                System.out.println("Rating successfully " + action + ".");
+
+                // add a brief pause to let the user see the success message before the screen clears
                 try {
                     Thread.sleep(2000); // delay for 2 seconds
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             } else {
-                System.out.println("Failed to remove rating. Response code: " + responseCode);
+                String action = ratingValue != null ? "submit" : "remove";
+                System.out.println("Failed to " + action + " rating. Response code: " + responseCode);
             }
 
             conn.disconnect();
