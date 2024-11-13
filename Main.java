@@ -128,7 +128,7 @@ public class Main {
                 scanner.nextLine();
                 if (selection > 0 && selection <= results.length()) {
                     int movieId = results.getJSONObject(selection - 1).getInt("id");
-                    fetchAndShowMovieDetails(movieId, scanner, "discover");
+                    fetchAndShowMovieDetails(movieId, scanner, "discover", true);
                 }
             } else {
                 System.out.println("Error: Unable to fetch data from TheMovieDB API. Response code: " + conn.getResponseCode());
@@ -189,7 +189,7 @@ public class Main {
                     scanner.nextLine();
                     if (selection > 0 && selection <= results.length()) {
                         int movieId = results.getJSONObject(selection - 1).getInt("id");
-                        fetchAndShowMovieDetails(movieId, scanner, "search");
+                        fetchAndShowMovieDetails(movieId, scanner, "search", true);
                     }
                 } else {
                     System.out.println("No movies found with that title.");
@@ -263,7 +263,7 @@ public class Main {
                         return; // go back to previous menu
                     } else if (selection > 0 && selection <= results.length()) {
                         int movieId = results.getJSONObject(selection - 1).getInt("id");
-                        fetchAndShowMovieDetails(movieId, scanner, "watchlist");
+                        fetchAndShowMovieDetails(movieId, scanner, "watchlist", false);
                     }
                 }
             } else {
@@ -335,7 +335,7 @@ public class Main {
                         return; // go back to the previous menu
                     } else if (selection > 0 && selection <= results.length()) {
                         int movieId = results.getJSONObject(selection - 1).getInt("id");
-                        fetchAndShowMovieDetails(movieId, scanner, "favorites");
+                        fetchAndShowMovieDetails(movieId, scanner, "favorites", false);
                     }
                 }
             } else {
@@ -430,7 +430,7 @@ public class Main {
                         return; // go back to the previous menu
                     } else if (selection > 0 && selection <= results.length()) {
                         int movieId = results.getJSONObject(selection - 1).getInt("id");
-                        fetchAndShowMovieDetails(movieId, scanner, "rated");
+                        fetchAndShowMovieDetails(movieId, scanner, "rated", false);
                     }
                 }
             } else {
@@ -442,11 +442,8 @@ public class Main {
         }
     }
 
-    private static void showMovieDetails(JSONObject movie, Scanner scanner, String previousMenu) {
+    private static void showMovieDetails(JSONObject movie, Scanner scanner, String previousMenu, boolean showActions) {
         ConsoleUtils.clearConsole(); // clear the menu at the top to only shows relevant data for movie details function
-        System.out.println(
-            "\nEnter 'r' to rate this movie\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
-        );
         System.out.println("\nMovie Details");
         String title = movie.getString("title");
         String tagline = movie.optString("tagline", ""); // use optString to avoid errors if tagline is missing
@@ -470,35 +467,46 @@ public class Main {
         System.out.println("\n Release Date: " + releaseDate);
         System.out.println(" Rating: " + rating);
 
+        if (showActions) {
+            System.out.println(
+                "\nEnter 'r' to rate this movie\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
+            );
+        } else {
+            System.out.println("\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit");
+        }
+
         System.out.print("\nOption: ");
         String input = scanner.nextLine();
 
-        if (input.equalsIgnoreCase("a")) {
+        if (showActions && input.equalsIgnoreCase("a")) {
             updateWatchlist(movieId, true);
-            showMovieDetails(movie, scanner, previousMenu);
-        } else if (input.equalsIgnoreCase("f")) {
+            showMovieDetails(movie, scanner, previousMenu, showActions);
+        } else if (showActions && input.equalsIgnoreCase("f")) {
             updateFavorites(movieId, true);
-            showMovieDetails(movie, scanner, previousMenu);
-        } else if (input.equalsIgnoreCase("r")) {
+            showMovieDetails(movie, scanner, previousMenu, showActions);
+        } else if (showActions && input.equalsIgnoreCase("r")) {
             System.out.print("\nEnter your rating (0.5 to 10): ");
-            // reads the user's input from the console using the scanner object
-            // Double.parseDouble(...) converts this string input into a double type
             double ratingValue = Double.parseDouble(scanner.nextLine());
-            // calls the rateMovie method, passing two arguments: movieId, which is the identifier of the movie being rated, and ratingValue, which is the user-provided rating
             updateRating(movieId, ratingValue);
-            // called again to refresh the display of movie details after the rating has been submitted
-            showMovieDetails(movie, scanner, previousMenu);
+            showMovieDetails(movie, scanner, previousMenu, showActions);
         } else if (input.equalsIgnoreCase("b")) {
-            if (previousMenu.equals("discover")) {
-                discoverMovies(scanner);
-            } else if (previousMenu.equals("search")) {
-                searchMovies(scanner);
-            } else if (previousMenu.equals("watchlist")) {
-                viewWatchlist(scanner);
-            } else if (previousMenu.equals("favorites")) {
-                viewFavorites(scanner);
-            } else if (previousMenu.equals("rated")) {
-                viewRatedMovies(scanner);
+            // go back to the previous menu
+            switch (previousMenu) {
+                case "discover":
+                    discoverMovies(scanner);
+                    break;
+                case "search":
+                    searchMovies(scanner);
+                    break;
+                case "watchlist":
+                    viewWatchlist(scanner);
+                    break;
+                case "favorites":
+                    viewFavorites(scanner);
+                    break;
+                case "rated":
+                    viewRatedMovies(scanner);
+                    break;
             }
         } else if (input.equalsIgnoreCase("e")) {
             System.out.println("Exiting the program.");
@@ -506,7 +514,7 @@ public class Main {
         }
     }
 
-    private static void fetchAndShowMovieDetails(int movieId, Scanner scanner, String previousMenu) {
+    private static void fetchAndShowMovieDetails(int movieId, Scanner scanner, String previousMenu, boolean showActions) {
         try {
             URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + API_KEY);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -524,7 +532,7 @@ public class Main {
                 in.close();
 
                 JSONObject movieDetails = new JSONObject(response.toString());
-                showMovieDetails(movieDetails, scanner, previousMenu);
+                showMovieDetails(movieDetails, scanner, previousMenu, showActions);
             } else {
                 System.out.println("Error: Unable to fetch movie details. Response code: " + conn.getResponseCode());
             }
