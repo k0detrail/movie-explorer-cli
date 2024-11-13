@@ -543,7 +543,7 @@ public class Main {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
-            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"watchlist\": true}";
+            String jsonInputString = "{\"media_type\": \"movie\", \"media_id\": " + movieId + ", \"watchlist\": " + add + "}";
 
             try (OutputStream os = conn.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes("utf-8");
