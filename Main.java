@@ -452,6 +452,16 @@ public class Main {
         double rating = movie.getDouble("vote_average");
         int movieId = movie.getInt("id");
 
+        // dunno tf is this, a reddit user helped me with this :D
+        JSONArray genresArray = movie.getJSONArray("genres");
+        StringBuilder genres = new StringBuilder();
+        for (int i = 0; i < genresArray.length(); i++) {
+            genres.append(genresArray.getJSONObject(i).getString("name"));
+            if (i < genresArray.length() - 1) {
+                genres.append(", ");
+            }
+        }
+
         System.out.println("\n" + title);
         // NOTE: this works in many command-line environments, but it may not work in some ide consoles
         // (like eclipse or intellij) which don’t support ansi escape codes by default
@@ -466,6 +476,7 @@ public class Main {
         System.out.println("\n" + overview);
         System.out.println("\n Release Date: " + releaseDate);
         System.out.println(" Rating: " + rating);
+        System.out.println(" Genres: " + genres.toString());
 
         if (showActions) {
             System.out.println(
