@@ -37,12 +37,26 @@ public class Main {
     private static final String ADD_FAVORITES_URL =
         ("https://api.themoviedb.org/3/account/" + ACCOUNT_ID + "/favorite?api_key=" + ACCESS_TOKEN);
 
+    // this serves as the entry point of the java program
+    // public: allows jvm access from anywhere
+    // static: runs without an instance of the class
+    // void: returns no value
+    // main: method name recognized by jvm to start the application.
+    // String[] args: accepts cli arguments
+    // example of running the program with a parameter:
+    // java Main --param someValue (in this case, 'param' is an argument and 'someValue' is its value
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
+        // 'while loop' that will continuously run
+        // as long as 'running' is 'true'
         while (running) {
-            ConsoleUtils.clearConsole(); // called at the beginning of each function to clear the screen and only show the relevant options or information
+
+            // called at the beginning of each function to clear the screen
+            // and only show the relevant options or information for cleaner ui
+            ConsoleUtils.clearConsole();
+
             System.out.println("\n󰎁 The Movie Database CLI 󰟞");
             System.out.println(
                 "\nA simple command-line tool to explore movies and manage your favorites. Pick an option below to discover new films, search for specific titles, or check your watchlist. When you’re done, just hit exit!"
@@ -73,10 +87,14 @@ public class Main {
                     viewRatedMovies(scanner);
                     break;
                 case "6":
+                    // this sets the value of 'running' to 'false'
+                    // terminating the 'while loop'
                     running = false;
                     System.out.println("Exiting the program.");
                     break;
                 default:
+                    // if the input is anything other than '1-6', will print 'invalid option...'
+                    // then the loop will continue, prompting the user for the valid input
                     System.out.println("Invalid option. Please try again.");
             }
         }
@@ -86,11 +104,24 @@ public class Main {
 
     private static void discoverMovies(Scanner scanner) {
         try {
+
+            // base url for fetching movies and the API_KEY is the personal key
+            // to authenticate the request
+            // we only use api key for api request because we're only accessing
+            // public data
             URL url = new URL(DISCOVER_URL + "&api_key=" + API_KEY);
+
+            // this part opens a connection to the api using HttpURLConnection
+            // GET means we want to retrieve data from the server
+            // the Accept header tells the server that we want the response in json format
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
 
+            // this checks the HTTP response code from the server
+            // to determine if the request was successful
+            // in the HTTP protocol, 200 OK is the standard response
+            // code that indicates the request was successful
             if (conn.getResponseCode() == 200) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String inputLine;
@@ -99,15 +130,24 @@ public class Main {
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
-                in.close();
+                in.close(); // hehe, to avoid memory leaks :) and to fress up system resources
 
+                // provides methods to interact with json data,
+                // like getting values from the object by key
                 JSONObject jsonResponse = new JSONObject(response.toString());
+
+                // this stores json object
                 JSONArray results = jsonResponse.getJSONArray("results");
 
-                // get movie count from the discover list
+                // results.length(): this gets the number of elements in the 'results' array,
+                // like how many movies are in the response
+                // movieCount: stores the number of movies
+                // to show how many movies were found in the output
                 int movieCount = results.length();
 
+                // i have already explained this :/
                 ConsoleUtils.clearConsole();
+
                 // display the count of movies in the output
                 System.out.println("\nDiscover Movies (" + movieCount + " movies found)");
                 for (int i = 0; i < results.length(); i++) {
@@ -116,6 +156,7 @@ public class Main {
                     double rating = movie.getDouble("vote_average");
                     String releaseDate = movie.getString("release_date");
                     String overview = movie.getString("overview");
+
                     // truncate overview to a specified length (150 characters)
                     String truncatedOverview = truncateOverview(overview, 150);
                     System.out.println("\n" + (i + 1) + ". \u001B[32m" + title + "\u001B[0m ( " + rating + " |  " + releaseDate + ") ");
@@ -126,7 +167,15 @@ public class Main {
                 System.out.print("\nOption: ");
                 int selection = scanner.nextInt();
                 scanner.nextLine();
+
+                // selection > 0: making sure the selected number is greater than 0
+                // selection <= results.length(): making sure the selected number is within the range of available movies
                 if (selection > 0 && selection <= results.length()) {
+
+                    // since arrays are 0-based, subtract 1 to 'selection'
+                    // to get the correvt index in the results array
+                    // .getInt("id"): extracts the if field of the selected movie
+                    // then pass it to 'fetchAndShowMovieDetails' to view detailed infomation
                     int movieId = results.getJSONObject(selection - 1).getInt("id");
                     fetchAndShowMovieDetails(movieId, scanner, "discover", true);
                 }
@@ -478,6 +527,10 @@ public class Main {
         System.out.println(" Rating: " + rating);
         System.out.println(" Genres: " + genres.toString());
 
+        // in this 'if else' statement, this is a conditional statment wether to show more options
+        // in the 'viewWatchlist', 'viewFavorites', and 'viewRatedMovies' method we set this to false
+        // to hide other options since it's unnecesary to put this options when view mocie details from
+        // those sectins (or methods)
         if (showActions) {
             System.out.println(
                 "\nEnter 'r' to rate this movie\nEnter 'a' to add this movie to your watchlist\nEnter 'f' to add this movie to your favorites\nEnter 'b' to go back to the previous menu\nEnter 'e' to exit"
